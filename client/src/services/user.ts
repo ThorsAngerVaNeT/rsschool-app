@@ -100,6 +100,7 @@ export class UserService {
     const response = await this.axios.get<{ data: ProfileInfo }>(`/api/profile/info`, {
       params: { githubId },
     });
+    console.log('response.data.data: ', response.data.data);
     return response.data.data;
   }
 

@@ -159,3 +159,9 @@ export interface UserInfo {
   contacts?: Contacts;
   discord: Discord | null;
 }
+
+export interface JobFound {
+  jobFound: boolean;
+  jobFoundCompanyName: string;
+  jobFoundOfficeLocation: string;
+}
