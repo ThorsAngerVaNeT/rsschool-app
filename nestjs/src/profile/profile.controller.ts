@@ -3,7 +3,7 @@ import { ApiBody, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nes
 import { DefaultGuard, RequiredRoles, Role, RoleGuard } from 'src/auth';
 import { CoursesService } from 'src/courses/courses.service';
 import { CurrentRequest } from '../auth/auth.service';
-import { ProfileInfoDto, ProfileCourseDto, UpdateUserDto, UpdateProfileInfoDto, JobFoundDto } from './dto';
+import { ProfileInfoDto, ProfileCourseDto, UpdateUserDto, UpdateProfileInfoDto /* JobFoundDto*/ } from './dto';
 import { ProfileDto } from './dto/profile.dto';
 import { ProfileService } from './profile.service';
 import { PersonalProfileDto } from './dto/personal-profile.dto';
@@ -77,6 +77,18 @@ export class ProfileController {
     return new ProfileDto(profile);
   }
 
+  @Get('/job-found')
+  // @ApiOperation({ operationId: 'getJobFound' })
+  // @ApiBody({ type: JobFoundDto })
+  public async getJobFound() {
+    // const { user } = req;
+    console.log('user: ');
+    // const jobFoundInfo = await this.profileService.getJobFound(user.id);
+    // console.log('jobFoundInfo: ', jobFoundInfo);
+    // return new JobFoundDto(jobFoundInfo);
+    return { log: 'sss' };
+  }
+
   @Get(':username/personal')
   @UseGuards(DefaultGuard, RoleGuard)
   @RequiredRoles([Role.Admin])
@@ -98,12 +110,13 @@ export class ProfileController {
     return new EndorsementDto(endorsement);
   }
 
-  @Patch('/user')
-  @ApiOperation({ operationId: 'updateJobFound' })
-  @ApiBody({ type: JobFoundDto })
-  public async updateJobFound(@Req() req: CurrentRequest, @Body() dto: JobFoundDto) {
-    const { user } = req;
+  // @Patch('/job')
+  // @ApiOperation({ operationId: 'updateJobFound' })
+  // @ApiBody({ type: JobFoundDto })
+  // public async updateJobFound(@Req() req: CurrentRequest, @Body() dto: JobFoundDto) {
+  //   const { user } = req;
+  //   console.log('user: ', user);
 
-    await this.profileService.updateJobFound(user.id, dto);
-  }
+  //   await this.profileService.updateJobFound(user.id, dto);
+  // }
 }
