@@ -142,12 +142,11 @@ export class DiscordGatewayClientService {
     if (!this.initialized) {
       await this.init();
     }
+
     const guildsIds = Array.from(this.guilds.keys());
-    console.log('guildsIds: ', guildsIds);
     const promises = guildsIds.map(
       id =>
         new Promise((resolve: (value: APIGuildMember[]) => void) => {
-          console.log('id: ', id);
           this.fetchMembers(id);
           this.clientEmitter.once(`guildMembers-${id}`, resolve);
         }),
