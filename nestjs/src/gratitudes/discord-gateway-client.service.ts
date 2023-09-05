@@ -6,6 +6,7 @@ import {
   GatewayReceivePayload,
   GatewayGuildCreateDispatchData,
   APIGuildMember,
+  APIUser,
 } from 'discord-api-types/v10';
 import { Payloads } from './discord-gateway-payloads';
 import { EventEmitter } from 'events';
@@ -160,5 +161,35 @@ export class DiscordGatewayClientService {
     }, {} as Record<string, APIGuildMember[]>);
 
     return result;
+  }
+
+  public async getActivists() {
+    const guildsMembers = await this.getMembers();
+    const guildsRoles = Array.from(this.guilds.values()).reduce((accumulator, guild) => {
+      const roleId = guild.roles.find(role => role.name.includes('activist'))?.id;
+      if (roleId) {
+        accumulator.set(guild.id, roleId);
+      }
+      return accumulator;
+    }, new Map<string, string>());
+
+    const activists = Object.entries(guildsMembers).reduce((accumulator, [guildId, members]) => {
+      const roleId = guildsRoles.get(guildId);
+      if (roleId) {
+        members
+          .filter(member => member.roles.includes(roleId))
+          .map(({ user }) => user)
+          .filter(Boolean)
+          .forEach(user => {
+            if (!accumulator[user.id]) {
+              accumulator[user.id] = user;
+            }
+          });
+      }
+
+      return accumulator;
+    }, {} as Record<string, APIUser>);
+
+    return activists;
   }
 }
