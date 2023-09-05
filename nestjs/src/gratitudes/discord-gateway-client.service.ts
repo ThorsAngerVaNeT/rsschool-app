@@ -106,10 +106,6 @@ export class DiscordGatewayClientService {
         });
 
         this.client.on('close', () => {
-          setTimeout(() => this.init(), 5000);
-        });
-
-        this.client.on('terminate', () => {
           clearInterval(this.interval);
         });
       });
@@ -138,7 +134,7 @@ export class DiscordGatewayClientService {
     this.client.send(Payloads[GatewayOpcodes.RequestGuildMembers](guildId));
   }
 
-  public async getMembers() {
+  private async getMembers() {
     if (!this.initialized) {
       await this.init();
     }
@@ -188,6 +184,8 @@ export class DiscordGatewayClientService {
 
       return accumulator;
     }, {} as Record<string, APIUser>);
+
+    this.client.terminate();
 
     return activists;
   }
