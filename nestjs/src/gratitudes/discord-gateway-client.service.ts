@@ -87,7 +87,7 @@ export class DiscordGatewayClientService {
             case GatewayDispatchEvents.GuildCreate:
               this.guilds.set(d.id, d);
               if (this.unavailableGuildsCount === this.guilds.size) {
-                this.clientEmitter.emit(`guildsPopulated`);
+                resolve();
               }
               break;
 
@@ -104,7 +104,6 @@ export class DiscordGatewayClientService {
           clearInterval(this.interval);
         });
       });
-      resolve();
     });
   }
 
@@ -123,12 +122,7 @@ export class DiscordGatewayClientService {
   }
 
   public async getGuilds() {
-    return this.guilds.size && this.guilds.size === this.unavailableGuildsCount
-      ? Object.fromEntries(this.guilds)
-      : new Promise(resolve => {
-          this.clientEmitter.once('guildsPopulated', () => {
-            resolve(Object.fromEntries(this.guilds));
-          });
-        });
+    return Object.fromEntries(this.guilds);
+  }
   }
 }
