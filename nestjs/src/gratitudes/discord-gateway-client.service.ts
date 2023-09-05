@@ -7,6 +7,9 @@ import {
   GatewayGuildCreateDispatchData,
 } from 'discord-api-types/v10';
 import { Payloads } from './discord-gateway-payloads';
+import { EventEmitter } from 'events';
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
 
 @Injectable()
 export class DiscordGatewayClientService {
@@ -28,7 +31,11 @@ export class DiscordGatewayClientService {
 
   private seq: number;
 
+  private unavailableGuildsCount = 0;
+
   private guilds: Map<string, GatewayGuildCreateDispatchData> = new Map();
+
+  private clientEmitter = new EventEmitter();
 
   public init(): Promise<void> {
     return new Promise((resolve): void => {
@@ -74,10 +81,14 @@ export class DiscordGatewayClientService {
             case GatewayDispatchEvents.Ready:
               this.currentUrl = d.resume_gateway_url;
               this.sessionId = d.session_id;
+              this.unavailableGuildsCount = d.guilds.length;
               break;
 
             case GatewayDispatchEvents.GuildCreate:
               this.guilds.set(d.id, d);
+              if (this.unavailableGuildsCount === this.guilds.size) {
+                this.clientEmitter.emit(`guildsPopulated`);
+              }
               break;
 
             default:
@@ -109,5 +120,15 @@ export class DiscordGatewayClientService {
     this.interval = setInterval(() => {
       this.client.send(Payloads[GatewayOpcodes.Heartbeat]());
     }, ms);
+  }
+
+  public async getGuilds() {
+    return this.guilds.size && this.guilds.size === this.unavailableGuildsCount
+      ? Object.fromEntries(this.guilds)
+      : new Promise(resolve => {
+          this.clientEmitter.once('guildsPopulated', () => {
+            resolve(Object.fromEntries(this.guilds));
+          });
+        });
   }
 }
