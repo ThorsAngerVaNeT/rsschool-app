@@ -5,6 +5,7 @@ import {
   GatewayDispatchEvents,
   GatewayReceivePayload,
   GatewayGuildCreateDispatchData,
+  APIGuildMember,
 } from 'discord-api-types/v10';
 import { Payloads } from './discord-gateway-payloads';
 import { EventEmitter } from 'events';
@@ -36,6 +37,8 @@ export class DiscordGatewayClientService {
   private guilds: Map<string, GatewayGuildCreateDispatchData> = new Map();
 
   private clientEmitter = new EventEmitter();
+
+  private initialized = false;
 
   public init(): Promise<void> {
     return new Promise((resolve): void => {
@@ -87,8 +90,13 @@ export class DiscordGatewayClientService {
             case GatewayDispatchEvents.GuildCreate:
               this.guilds.set(d.id, d);
               if (this.unavailableGuildsCount === this.guilds.size) {
+                this.initialized = true;
                 resolve();
               }
+              break;
+
+            case GatewayDispatchEvents.GuildMembersChunk:
+              this.clientEmitter.emit(`guildMembers-${d.guild_id}`, d.members);
               break;
 
             default:
@@ -124,5 +132,33 @@ export class DiscordGatewayClientService {
   public async getGuilds() {
     return Object.fromEntries(this.guilds);
   }
+
+  private fetchMembers(guildId: string) {
+    this.client.send(Payloads[GatewayOpcodes.RequestGuildMembers](guildId));
+  }
+
+  public async getMembers() {
+    if (!this.initialized) {
+      await this.init();
+    }
+    const guildsIds = Array.from(this.guilds.keys());
+    console.log('guildsIds: ', guildsIds);
+    const promises = guildsIds.map(
+      id =>
+        new Promise((resolve: (value: APIGuildMember[]) => void) => {
+          console.log('id: ', id);
+          this.fetchMembers(id);
+          this.clientEmitter.once(`guildMembers-${id}`, resolve);
+        }),
+    );
+
+    const guildsMembers = await Promise.all(promises);
+    const result = guildsMembers.reduce((accumulator, members, index) => {
+      const guildId = `${guildsIds[index]}`;
+      accumulator[guildId] = members;
+      return accumulator;
+    }, {} as Record<string, APIGuildMember[]>);
+
+    return result;
   }
 }
