@@ -19,7 +19,7 @@ type Props = {
 };
 
 const MainCard = ({ data, isEditingModeEnabled, updateProfile }: Props) => {
-  const { githubId, name, location, publicCvUrl, jobFoundInfo } = data;
+  const { githubId, name, location, publicCvUrl, employmentHistory } = data;
   const [isProfileSettingsVisible, setIsProfileSettingsVisible] = useState(false);
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [displayName, setDisplayName] = useState(name);
@@ -122,7 +122,7 @@ const MainCard = ({ data, isEditingModeEnabled, updateProfile }: Props) => {
         ) : null}
         {isEditingModeEnabled && (
           <>
-            {jobFoundInfo && <JobFoundButtonWithModal {...jobFoundInfo} />}
+            {employmentHistory && <JobFoundButtonWithModal {...employmentHistory} />}
             <ProfileSettingsModal
               isSettingsVisible={isProfileSettingsVisible}
               onCancel={onCancel}

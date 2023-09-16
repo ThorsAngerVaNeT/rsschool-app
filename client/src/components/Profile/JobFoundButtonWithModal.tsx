@@ -2,16 +2,16 @@ import { Button, Form, Input, Typography } from 'antd';
 import { useState } from 'react';
 import { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { Checkbox } from 'antd/lib';
-import { JobFoundDto, ProfileApi } from 'api';
+import { EmploymentRecordDto, ProfileApi } from 'api';
 import { ModalSubmitForm } from 'components/Forms/ModalSubmitForm';
 import { AxiosError } from 'axios';
 
 const { Paragraph } = Typography;
 const profileApi = new ProfileApi();
 
-const JobFoundButtonWithModal = (data: JobFoundDto) => {
+const JobFoundButtonWithModal = (data: EmploymentRecordDto) => {
   const [isJobFoundModalVisible, setIsJobFoundModalVisible] = useState(false);
-  const [checked, setChecked] = useState(data.jobFound);
+  const [checked, setChecked] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -27,14 +27,14 @@ const JobFoundButtonWithModal = (data: JobFoundDto) => {
     setIsJobFoundModalVisible(false);
   };
 
-  const onSubmit = async (values: JobFoundDto) => {
+  const onSubmit = async (values: EmploymentRecordDto) => {
     setLoading(true);
     try {
-      if (!values.jobFound) {
-        values.jobFoundCompanyName = '';
-        values.jobFoundOfficeLocation = '';
+      if (!values.companyName) {
+        values.companyName = '';
+        values.officeLocation = '';
       }
-      await profileApi.updateJobFound(values);
+      await profileApi.updateProfileInfoFlat({ employmentHistory: [values] });
       setSubmitted(true);
     } catch (e) {
       let error = 'Unknown error';
@@ -80,10 +80,10 @@ const JobFoundButtonWithModal = (data: JobFoundDto) => {
         <Form.Item label="Check checkbox if you've got a job" name="jobFound" valuePropName="checked" required>
           <Checkbox onChange={onChange}>{title}</Checkbox>
         </Form.Item>
-        <Form.Item label="Add a company name" name="jobFoundCompanyName">
+        <Form.Item label="Add a company name" name="companyName">
           <Input disabled={!checked} />
         </Form.Item>
-        <Form.Item label="Add a office location" name="jobFoundOfficeLocation">
+        <Form.Item label="Add a office location" name="officeLocation">
           <Input disabled={!checked} />
         </Form.Item>
       </ModalSubmitForm>
